@@ -37,16 +37,27 @@ LoggedProcess::LoggedProcess(QObject* parent) : QProcess(parent)
 			&LoggedProcess::on_stdOut);
 	connect(this, &QProcess::readyReadStandardError, this,
 			&LoggedProcess::on_stdErr);
-	connect(this, &QProcess::finished, this, &LoggedProcess::on_exit);
+	connect(this, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this, &LoggedProcess::on_exit);
 	connect(this, &QProcess::errorOccurred, this, &LoggedProcess::on_error);
 	connect(this, &QProcess::stateChanged, this,
 			&LoggedProcess::on_stateChange);
 
-#ifdef Q_OS_UNIX
-	// Create a new process group so we can kill the entire tree
+#if defined(Q_OS_UNIX) && QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	// Create a new process group so we can kill the entire tree.
+	// On Qt 5 this is done by overriding setupChildProcess() instead --
+	// see below.
 	setChildProcessModifier([]() { setsid(); });
 #endif
 }
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0) && defined(Q_OS_UNIX)
+void LoggedProcess::setupChildProcess()
+{
+	// Runs in the forked child before exec(), same as the Qt 6 modifier
+	// above. setsid() is async-signal-safe, which is the constraint here.
+	setsid();
+}
+#endif
 
 LoggedProcess::~LoggedProcess()
 {

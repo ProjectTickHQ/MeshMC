@@ -53,6 +53,12 @@
 #include <QtCore/QVector>
 #include <QtCore/QTypeInfo>
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#define MESHMC_QICONENGINE_QUERY_CONST
+#else
+#define MESHMC_QICONENGINE_QUERY_CONST const
+#endif
+
 namespace QtXdg
 {
 
@@ -120,8 +126,9 @@ namespace QtXdg
 		bool hasIcon() const;
 		void ensureLoaded();
 		QList<QSize> availableSizes(QIcon::Mode mode = QIcon::Normal,
-									QIcon::State state = QIcon::Off) override;
-		QString iconName() override;
+									QIcon::State state = QIcon::Off)
+			MESHMC_QICONENGINE_QUERY_CONST override;
+		QString iconName() MESHMC_QICONENGINE_QUERY_CONST override;
 		QIconLoaderEngineEntry* entryForSize(const QSize& size);
 		QIconLoaderEngineFixed(const QIconLoaderEngineFixed& other);
 		QThemeIconEntries m_entries;

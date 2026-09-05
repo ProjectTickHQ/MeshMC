@@ -28,6 +28,8 @@
 #include <QJsonObject>
 #include <QRegularExpression>
 
+#include <algorithm>
+
 #include "settings/INISettingsObject.h"
 #include "settings/Setting.h"
 #include "settings/OverrideSetting.h"
@@ -430,9 +432,14 @@ void BaseInstance::registerShortcut(const ShortcutData& shortcut)
 	QList<ShortcutData> current = shortcuts();
 
 	/* Writing over an existing shortcut is one shortcut, not two. */
-	current.removeIf([&shortcut](const ShortcutData& known) {
-		return known.filePath == shortcut.filePath;
-	});
+	/* QList::removeIf() is Qt 6.1+; the erase-remove idiom is equivalent and
+	 * compiles against both Qt 5 and Qt 6. */
+	current.erase(std::remove_if(current.begin(), current.end(),
+								 [&shortcut](const ShortcutData& known) {
+									 return known.filePath ==
+											shortcut.filePath;
+								 }),
+				  current.end());
 	current.append(shortcut);
 
 	qDebug() << "Instance" << id() << "now owns shortcut" << shortcut.name

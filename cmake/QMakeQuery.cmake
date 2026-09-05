@@ -3,7 +3,7 @@ if(__QMAKEQUERY_CMAKE__)
 endif()
 set(__QMAKEQUERY_CMAKE__ TRUE)
 
-get_target_property(QMAKE_EXECUTABLE Qt6::qmake LOCATION)
+get_target_property(QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake LOCATION)
 
 function(QUERY_QMAKE VAR RESULT)
     execute_process(COMMAND ${QMAKE_EXECUTABLE} -query ${VAR}

@@ -19,6 +19,8 @@
 
 #include "ProjectItemDelegate.h"
 
+#include "QtCompat.h"
+
 #include <QApplication>
 #include <QFontMetrics>
 #include <QMouseEvent>
@@ -243,7 +245,7 @@ bool ProjectItemDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
 		opt.widget == nullptr ? QApplication::style() : opt.widget->style();
 	const QStyleOptionViewItem boxOpt = checkboxOption(opt, style);
 
-	if (!boxOpt.rect.contains(mouseEvent->position().toPoint())) {
+	if (!boxOpt.rect.contains(QtCompat::mousePosition(mouseEvent).toPoint())) {
 		return QStyledItemDelegate::editorEvent(event, model, option, index);
 	}
 

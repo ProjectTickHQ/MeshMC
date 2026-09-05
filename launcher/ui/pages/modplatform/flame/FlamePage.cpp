@@ -50,7 +50,7 @@ FlamePage::FlamePage(NewInstanceDialog* dialog, QWidget* parent)
 		ui->sortByBox->addItem(sorting.readableName);
 	}
 
-	connect(ui->sortByBox, &QComboBox::currentIndexChanged, this,
+	connect(ui->sortByBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
 			&FlamePage::triggerSearch);
 	connect(ui->packView->selectionModel(),
 			&QItemSelectionModel::currentChanged, this,

@@ -73,7 +73,7 @@ MeshMCPage::MeshMCPage(QWidget* parent)
 	} else {
 		ui->updateSettingsBox->setHidden(true);
 	}
-	connect(ui->fontSizeBox, &QSpinBox::valueChanged, this,
+	connect(ui->fontSizeBox, qOverload<int>(&QSpinBox::valueChanged), this,
 			&MeshMCPage::refreshFontPreview);
 	connect(ui->consoleFont, &QFontComboBox::currentFontChanged, this,
 			&MeshMCPage::refreshFontPreview);

@@ -28,6 +28,7 @@ set(CORE_SOURCES
     Sys.cpp
     Sys.h
     NullInstance.h
+    QtCompat.h
     MMCZip.h
     MMCZip.cpp
     MMCStrings.h
@@ -399,7 +400,7 @@ add_executable(PackageManifest
 )
 target_link_libraries(PackageManifest
     MeshMC_logic
-    Qt6::Test
+    Qt${QT_VERSION_MAJOR}::Test
 )
 target_include_directories(PackageManifest
     PRIVATE ../cmake/UnitTest/
@@ -1028,7 +1029,7 @@ SET(MESHMC_SOURCES
     ui/instanceview/VisualGroup.h
 )
 
-qt6_wrap_ui(MESHMC_UI
+set(MESHMC_UI_FILES
     ui/pages/global/AccountListPage.ui
     ui/pages/global/AppearancePage.ui
     ui/pages/global/JavaPage.ui
@@ -1085,6 +1086,15 @@ qt6_wrap_ui(MESHMC_UI
     ui/dialogs/UntrustedModsDialog.ui
 )
 
+# Dispatch explicitly on the major version instead of using the versionless
+# qt_wrap_ui: on Qt 5 that wrapper is a no-op unless QT_DEFAULT_MAJOR_VERSION
+# happens to be set, which would silently generate no ui_*.h headers at all.
+if(QT_VERSION_MAJOR EQUAL 6)
+    qt6_wrap_ui(MESHMC_UI ${MESHMC_UI_FILES})
+else()
+    qt5_wrap_ui(MESHMC_UI ${MESHMC_UI_FILES})
+endif()
+
 if(NOT MeshMC_DISABLE_JAVA_DOWNLOADER)
     list(APPEND MESHMC_SOURCES
         ui/dialogs/JavaDownloadDialog.cpp
@@ -1099,7 +1109,7 @@ if (APPLE)
     )
 endif()
 
-qt6_add_resources(MESHMC_RESOURCES
+set(MESHMC_QRC_FILES
     resources/backgrounds/backgrounds.qrc
     resources/multimc/multimc.qrc
     resources/pe_dark/pe_dark.qrc
@@ -1115,6 +1125,13 @@ qt6_add_resources(MESHMC_RESOURCES
     resources/breeze_light/breeze_light.qrc
     ${CMAKE_BINARY_DIR}/${MeshMC_AppBinaryName}.qrc
 )
+
+# Same reasoning as MESHMC_UI above: never rely on the versionless wrapper.
+if(QT_VERSION_MAJOR EQUAL 6)
+    qt6_add_resources(MESHMC_RESOURCES ${MESHMC_QRC_FILES})
+else()
+    qt5_add_resources(MESHMC_RESOURCES ${MESHMC_QRC_FILES})
+endif()
 
 ######## Windows resource files ########
 if(WIN32)
@@ -1153,12 +1170,12 @@ endif()
 # translation unit that logs, so the binary grows and carries build paths.
 target_compile_definitions(MeshMC_logic PUBLIC QT_MESSAGELOGCONTEXT)
 target_link_libraries(MeshMC_logic
-    Qt6::Core
-    Qt6::Xml
-    Qt6::Network
-    Qt6::NetworkAuth
-    Qt6::Concurrent
-    Qt6::Gui
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Xml
+    Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::NetworkAuth
+    Qt${QT_VERSION_MAJOR}::Concurrent
+    Qt${QT_VERSION_MAJOR}::Gui
     LibArchive::LibArchive
 )
 target_link_libraries(MeshMC_logic
@@ -1282,7 +1299,7 @@ if(WIN32 OR (UNIX AND APPLE))
     if(WIN32)
         # Find windeployqt directly — Qt's qt_generate_deploy_script tries to find
         # windeployqt.debug.bat for Debug builds, which may not be available.
-        get_target_property(_qt_qmake_loc Qt6::qmake IMPORTED_LOCATION)
+        get_target_property(_qt_qmake_loc Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
         get_filename_component(_qt_bin_dir "${_qt_qmake_loc}" DIRECTORY)
         find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
         if(NOT WINDEPLOYQT_EXECUTABLE)
@@ -1291,24 +1308,89 @@ if(WIN32 OR (UNIX AND APPLE))
     endif()
 
     if(UNIX AND APPLE)
-        qt_generate_deploy_script(
-            TARGET ${MeshMC_Name}
-            OUTPUT_SCRIPT QT_DEPLOY_SCRIPT
-            CONTENT "
-            qt_deploy_runtime_dependencies(
-                EXECUTABLE ${BINARY_DEST_DIR}/$<TARGET_FILE_NAME:${MeshMC_Name}>
-                BIN_DIR ${BINARY_DEST_DIR}
-                LIBEXEC_DIR ${BINARY_DEST_DIR}
-                LIB_DIR ${LIBRARY_DEST_DIR}
-                PLUGINS_DIR ${PLUGIN_DEST_DIR}
-                NO_OVERWRITE
-                NO_TRANSLATIONS
-                NO_COMPILER_RUNTIME
-            )"
-        )
-        install(
-            SCRIPT ${QT_DEPLOY_SCRIPT}
-        )
+        # qt_generate_deploy_script/qt_deploy_runtime_dependencies are Qt 6.3+
+        # only. Qt 5 has no CMake equivalent, but it ships macdeployqt, which
+        # is the supported way to do the same job, so the Qt 5 branch below
+        # shells out to it.
+        if(QT_VERSION_MAJOR EQUAL 6)
+            qt_generate_deploy_script(
+                TARGET ${MeshMC_Name}
+                OUTPUT_SCRIPT QT_DEPLOY_SCRIPT
+                CONTENT "
+                qt_deploy_runtime_dependencies(
+                    EXECUTABLE ${BINARY_DEST_DIR}/$<TARGET_FILE_NAME:${MeshMC_Name}>
+                    BIN_DIR ${BINARY_DEST_DIR}
+                    LIBEXEC_DIR ${BINARY_DEST_DIR}
+                    LIB_DIR ${LIBRARY_DEST_DIR}
+                    PLUGINS_DIR ${PLUGIN_DEST_DIR}
+                    NO_OVERWRITE
+                    NO_TRANSLATIONS
+                    NO_COMPILER_RUNTIME
+                )"
+            )
+            install(
+                SCRIPT ${QT_DEPLOY_SCRIPT}
+            )
+        else()
+            # Qt 5: deploy with macdeployqt. Located the same way windeployqt
+            # is above, via the qmake target's directory.
+            #
+            # Deliberately not a configure-time hard error when the tool is
+            # missing: configuring and building a Qt 5 macOS tree has to keep
+            # working even where the deploy step will never run (a
+            # compile-only CI job, for instance). The tool is only genuinely
+            # required by `install`, so that is where it is enforced.
+            get_target_property(_qt_macdeploy_qmake
+                Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
+            get_filename_component(_qt_macdeploy_bin_dir
+                "${_qt_macdeploy_qmake}" DIRECTORY)
+            find_program(MACDEPLOYQT_EXECUTABLE macdeployqt
+                HINTS "${_qt_macdeploy_bin_dir}")
+
+            if(NOT MACDEPLOYQT_EXECUTABLE)
+                message(WARNING
+                    "macdeployqt was not found next to qmake "
+                    "(${_qt_macdeploy_bin_dir}). Building will work, but "
+                    "installing will fail: the .app would be missing its Qt "
+                    "frameworks and plugins. It ships with Qt 5's qtbase.")
+            endif()
+
+            # Runs after the install(CODE) further up that merges the staged
+            # bundle into ${CMAKE_INSTALL_PREFIX}/${MeshMC_Name}.app, so the
+            # bundle macdeployqt is pointed at already exists. This sits at
+            # the same point in the install order as the Qt 6 branch's
+            # install(SCRIPT) above.
+            #
+            # Only the main executable is handed over, matching what the Qt 6
+            # branch passes as EXECUTABLE. Helper binaries in the bundle (the
+            # updater, the crash reporter) and the .mmco plugins are therefore
+            # not rewritten by macdeployqt on either branch.
+            install(CODE "
+                set(_meshmc_macdeployqt \"${MACDEPLOYQT_EXECUTABLE}\")
+                set(_meshmc_bundle \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${MeshMC_Name}.app\")
+
+                if(NOT _meshmc_macdeployqt)
+                    message(FATAL_ERROR
+                        \"macdeployqt was not found, so '\${_meshmc_bundle}' \"
+                        \"cannot be completed. It ships with Qt 5's qtbase; \"
+                        \"make sure Qt's bin directory is available.\")
+                endif()
+                if(NOT IS_DIRECTORY \"\${_meshmc_bundle}\")
+                    message(FATAL_ERROR
+                        \"App bundle '\${_meshmc_bundle}' is missing; \"
+                        \"cannot run macdeployqt on it.\")
+                endif()
+
+                message(STATUS \"Deploying Qt into \${_meshmc_bundle}\")
+                execute_process(
+                    COMMAND \"\${_meshmc_macdeployqt}\" \"\${_meshmc_bundle}\"
+                    RESULT_VARIABLE _deploy_result
+                )
+                if(NOT _deploy_result EQUAL 0)
+                    message(FATAL_ERROR \"macdeployqt failed with exit code: \${_deploy_result}\")
+                endif()
+            ")
+        endif()
     endif()
 
     # Bundle our linked dependencies

@@ -80,8 +80,10 @@ bool GZip::zip(const QByteArray& uncompressedBytes, QByteArray& compressedBytes)
 		return true;
 	}
 
-	unsigned compLength =
-		std::min(static_cast<qsizetype>(16), uncompressedBytes.size());
+	/* QByteArray::size() returns int on Qt 5 and qsizetype on Qt 6, so
+	 * std::min cannot deduce one common type on Qt 5. Pin it explicitly. */
+	unsigned compLength = static_cast<unsigned>(
+		std::min<qsizetype>(16, uncompressedBytes.size()));
 	compressedBytes.clear();
 	compressedBytes.resize(compLength);
 

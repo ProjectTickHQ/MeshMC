@@ -40,13 +40,13 @@ AppearancePage::AppearancePage(QWidget* parent)
 	ui->catPreview->setGraphicsEffect(new QGraphicsOpacityEffect(this));
 
 	connect(ui->widgetStyleComboBox,
-			QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+			QOverload<int>::of(qOverload<int>(&QComboBox::currentIndexChanged)), this,
 			&AppearancePage::applyWidgetTheme);
 	connect(ui->iconsComboBox,
-			QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+			QOverload<int>::of(qOverload<int>(&QComboBox::currentIndexChanged)), this,
 			&AppearancePage::applyIconTheme);
 	connect(ui->catPackComboBox,
-			QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+			QOverload<int>::of(qOverload<int>(&QComboBox::currentIndexChanged)), this,
 			&AppearancePage::applyCatTheme);
 	connect(ui->themesFolderButton, &QPushButton::clicked, this,
 			&AppearancePage::openThemesFolder);

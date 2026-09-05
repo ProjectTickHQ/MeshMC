@@ -11,7 +11,7 @@ set(CMAKE_C_STANDARD_REQUIRED true)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 11)
 
-find_package(Qt6 COMPONENTS Core Network REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network REQUIRED)
 
 set( katabasis_PRIVATE
     src/DeviceFlow.cpp
@@ -32,7 +32,7 @@ set( katabasis_PUBLIC
 add_library(Katabasis ${katabasis_PRIVATE} ${katabasis_PUBLIC})
 add_library(Katabasis::Katabasis ALIAS Katabasis)
 set_target_properties(Katabasis PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_link_libraries(Katabasis PUBLIC Qt6::Core Qt6::Network)
+target_link_libraries(Katabasis PUBLIC Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Network)
 set_target_properties(Katabasis PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 target_include_directories(Katabasis
     PUBLIC

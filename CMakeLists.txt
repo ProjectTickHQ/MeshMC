@@ -141,7 +141,21 @@ endif()
 ################################ 3rd Party Libs ################################
 
 # Find the required Qt parts
-find_package(Qt6 REQUIRED COMPONENTS
+#
+# MeshMC supports building against either Qt 5 or Qt 6. Every subdirectory
+# refers to Qt through the ${QT_VERSION_MAJOR} indirection set up here rather
+# than hardcoding Qt5::/Qt6::, so this is the single place that decides which
+# major version the whole build uses.
+set(MeshMC_QT_VERSION_MAJOR "6" CACHE STRING "Major Qt version to build against (5 or 6)")
+set_property(CACHE MeshMC_QT_VERSION_MAJOR PROPERTY STRINGS "5" "6")
+
+if(NOT MeshMC_QT_VERSION_MAJOR STREQUAL "5" AND NOT MeshMC_QT_VERSION_MAJOR STREQUAL "6")
+    message(FATAL_ERROR "MeshMC_QT_VERSION_MAJOR must be either 5 or 6. Got: ${MeshMC_QT_VERSION_MAJOR}")
+endif()
+
+set(QT_VERSION_MAJOR "${MeshMC_QT_VERSION_MAJOR}")
+
+set(MeshMC_QT_COMPONENTS
     Core
     Widgets
     Concurrent
@@ -150,16 +164,30 @@ find_package(Qt6 REQUIRED COMPONENTS
     Test
     Xml
     OpenGL
-    OpenGLWidgets
 )
-if(DEFINED Qt6Core_VERSION)
-    set(_projt_qt_version "${Qt6Core_VERSION}")
-elseif(DEFINED Qt6_VERSION)
-    set(_projt_qt_version "${Qt6_VERSION}")
+
+if(QT_VERSION_MAJOR EQUAL 6)
+    # Qt 6 split QOpenGLWidget out of QtWidgets into its own module.
+    list(APPEND MeshMC_QT_COMPONENTS OpenGLWidgets)
+    set(MeshMC_QT_MINIMUM_VERSION "6.4.0")
+else()
+    # 5.15 is the final Qt 5 LTS and the oldest release we support: it provides
+    # QtNetworkAuth, versionless CMake commands and the string/container APIs
+    # the codebase already relies on.
+    set(MeshMC_QT_MINIMUM_VERSION "5.15.0")
 endif()
-if(DEFINED _projt_qt_version AND _projt_qt_version VERSION_LESS "6.8.0")
-    message(FATAL_ERROR "Qt 6.8.0 or newer is required. Detected: ${_projt_qt_version}")
+
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS ${MeshMC_QT_COMPONENTS})
+
+if(DEFINED Qt${QT_VERSION_MAJOR}Core_VERSION)
+    set(_projt_qt_version "${Qt${QT_VERSION_MAJOR}Core_VERSION}")
+elseif(DEFINED Qt${QT_VERSION_MAJOR}_VERSION)
+    set(_projt_qt_version "${Qt${QT_VERSION_MAJOR}_VERSION}")
 endif()
+if(DEFINED _projt_qt_version AND _projt_qt_version VERSION_LESS "${MeshMC_QT_MINIMUM_VERSION}")
+    message(FATAL_ERROR "Qt ${MeshMC_QT_MINIMUM_VERSION} or newer is required. Detected: ${_projt_qt_version}")
+endif()
+message(STATUS "Building against Qt ${_projt_qt_version} (major version ${QT_VERSION_MAJOR})")
 unset(_projt_qt_version)
 
 if(UNIX)

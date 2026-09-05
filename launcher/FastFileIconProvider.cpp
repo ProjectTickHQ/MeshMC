@@ -25,9 +25,15 @@
 QIcon FastFileIconProvider::icon(const QFileInfo& info) const
 {
 	/* isAlias() covers macOS aliases, which are not symlinks and would
-	 * otherwise be drawn as plain files. */
+	 * otherwise be drawn as plain files. It is Qt 6.4+ only, so on a Qt 5
+	 * build a macOS alias gets the plain-file icon instead of the link
+	 * one -- cosmetic, and only on macOS. */
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
 	const bool link =
 		info.isSymbolicLink() || info.isAlias() || info.isShortcut();
+#else
+	const bool link = info.isSymbolicLink() || info.isShortcut();
+#endif
 
 	QStyle::StandardPixmap pixmap;
 	if (info.isDir()) {

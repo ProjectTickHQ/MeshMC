@@ -23,6 +23,7 @@
 #include "plugin/PluginHooks.h"
 
 #include "MainWindow.h"
+#include "QtCompat.h"
 #include "ui/MacMenuBar.h"
 #include "ui/themes/ThemeManager.h"
 
@@ -2651,30 +2652,27 @@ void MainWindow::checkForUpdates()
 		progressDlg->setStatus(tr("Checking for updates..."));
 		progressDlg->setAttribute(Qt::WA_DeleteOnClose);
 
-		connect(
+		QtCompat::connectOnce(
 			updater.get(), &UpdateChecker::checkFailed, progressDlg,
 			[progressDlg](QString reason) {
 				progressDlg->setFinished(
 					false, QObject::tr("Update check failed: %1").arg(reason));
-			},
-			Qt::SingleShotConnection);
+			});
 
-		connect(
+		QtCompat::connectOnce(
 			updater.get(), &UpdateChecker::updateAvailable, progressDlg,
 			[progressDlg](UpdateAvailableStatus status) {
 				progressDlg->setFinished(
 					true, QObject::tr("Update available: version %1")
 							  .arg(status.version));
-			},
-			Qt::SingleShotConnection);
+			});
 
-		connect(
+		QtCompat::connectOnce(
 			updater.get(), &UpdateChecker::noUpdateFound, progressDlg,
 			[progressDlg]() {
 				progressDlg->setFinished(
 					true, QObject::tr("You are running the latest version."));
-			},
-			Qt::SingleShotConnection);
+			});
 
 		progressDlg->show();
 		updater->checkForUpdate(true);

@@ -365,7 +365,7 @@ void FlamePackExportTask::onFingerprintsMatched()
 		}
 
 		const quint32 fingerprint = static_cast<quint32>(
-			file.value("fileFingerprint").toInteger());
+			file.value("fileFingerprint").toVariant().toLongLong());
 
 		/* Every pending file with this fingerprint, not just the first:
 		 * the same jar sitting in two folders hashes the same, and

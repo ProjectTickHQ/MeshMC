@@ -624,8 +624,9 @@ Bug: https://bugreports.qt.nokia.com/browse/QTBUG-12874
 
 	QList<QSize> QIconLoaderEngineFixed::availableSizes(QIcon::Mode,
 														QIcon::State)
+		MESHMC_QICONENGINE_QUERY_CONST
 	{
-		ensureLoaded();
+		const_cast<QIconLoaderEngineFixed*>(this)->ensureLoaded();
 
 		const int N = m_entries.size();
 		QList<QSize> sizes;
@@ -638,7 +639,7 @@ Bug: https://bugreports.qt.nokia.com/browse/QTBUG-12874
 		return sizes;
 	}
 
-	QString QIconLoaderEngineFixed::iconName()
+	QString QIconLoaderEngineFixed::iconName() MESHMC_QICONENGINE_QUERY_CONST
 	{
 		return m_iconName;
 	}

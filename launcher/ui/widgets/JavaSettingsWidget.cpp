@@ -49,11 +49,11 @@ JavaSettingsWidget::JavaSettingsWidget(QWidget* parent) : QWidget(parent)
 	badIcon = APPLICATION->getThemedIcon("status-bad");
 	setupUi();
 
-	connect(m_minMemSpinBox, &QSpinBox::valueChanged, this,
+	connect(m_minMemSpinBox, qOverload<int>(&QSpinBox::valueChanged), this,
 			&JavaSettingsWidget::memoryValueChanged);
-	connect(m_maxMemSpinBox, &QSpinBox::valueChanged, this,
+	connect(m_maxMemSpinBox, qOverload<int>(&QSpinBox::valueChanged), this,
 			&JavaSettingsWidget::memoryValueChanged);
-	connect(m_permGenSpinBox, &QSpinBox::valueChanged, this,
+	connect(m_permGenSpinBox, qOverload<int>(&QSpinBox::valueChanged), this,
 			&JavaSettingsWidget::memoryValueChanged);
 	connect(m_versionWidget, &VersionSelectWidget::selectedVersionChanged, this,
 			&JavaSettingsWidget::javaVersionSelected);

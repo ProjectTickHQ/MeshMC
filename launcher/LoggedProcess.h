@@ -68,6 +68,20 @@ class LoggedProcess : public QProcess
 	void on_error(QProcess::ProcessError error);
 	void on_stateChange(QProcess::ProcessState);
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0) && defined(Q_OS_UNIX)
+  protected:
+	/**
+	 * @brief put the child into a new process group so kill() reaches the
+	 *        whole tree
+	 *
+	 * Qt 6 does this with setChildProcessModifier() in the constructor;
+	 * Qt 5 has no such setter and expects this protected virtual to be
+	 * overridden instead. Both run in the child between fork() and exec(),
+	 * so only async-signal-safe calls belong here.
+	 */
+	void setupChildProcess() override;
+#endif
+
   private:
 	void changeState(LoggedProcess::State state);
 

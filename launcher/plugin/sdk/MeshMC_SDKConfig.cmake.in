@@ -14,7 +14,7 @@ include(CMakeFindDependencyMacro)
 #
 # C++ usage in an out-of-tree plugin CMakeLists.txt:
 #
-#   find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui)
+#   find_package(Qt@QT_VERSION_MAJOR@ REQUIRED COMPONENTS Core Widgets Gui)
 #   find_package(MeshMC_SDK REQUIRED)
 #   add_library(MyPlugin MODULE src/MyPlugin.cpp)
 #   target_link_libraries(MyPlugin PRIVATE MeshMC::SDK)
@@ -32,7 +32,11 @@ include(CMakeFindDependencyMacro)
 # which only links MeshMC::SDK_C does not require a Qt toolchain. The C++
 # target's INTERFACE_LINK_LIBRARIES still references the imported Qt
 # targets, so a C++ consumer that has Qt installed gets them transitively.
-find_dependency(Qt6 QUIET COMPONENTS Core Widgets Gui Network)
+# The Qt major version is baked in at configure time: the exported
+# MeshMC::SDK target names Qt@QT_VERSION_MAJOR@::* imported targets concretely, so a
+# consumer has to resolve the same major version the SDK was built against.
+set(MeshMC_SDK_QT_VERSION_MAJOR @QT_VERSION_MAJOR@)
+find_dependency(Qt@QT_VERSION_MAJOR@ QUIET COMPONENTS Core Widgets Gui Network)
 find_dependency(Katabasis QUIET)
 
 include("${CMAKE_CURRENT_LIST_DIR}/MeshMC_SDKTargets.cmake")

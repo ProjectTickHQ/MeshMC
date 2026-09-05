@@ -559,7 +559,7 @@ ServersPage::ServersPage(InstancePtr inst, QWidget* parent)
 			&ServersPage::nameEdited);
 	connect(ui->addressLine, &QLineEdit::textEdited, this,
 			&ServersPage::addressEdited);
-	connect(ui->resourceComboBox, &QComboBox::currentIndexChanged, this,
+	connect(ui->resourceComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
 			&ServersPage::resourceIndexChanged);
 	connect(m_model, &QAbstractItemModel::rowsRemoved, this,
 			&ServersPage::rowsRemoved);

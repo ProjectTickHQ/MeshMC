@@ -57,10 +57,10 @@ target_include_directories(MeshMC_sdk INTERFACE
 )
 
 target_link_libraries(MeshMC_sdk INTERFACE
-    Qt6::Core
-    Qt6::Widgets
-    Qt6::Gui
-    Qt6::Network
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Gui
+    Qt${QT_VERSION_MAJOR}::Network
 )
 
 # ---------------------------------------------------------------------------

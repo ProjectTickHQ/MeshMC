@@ -13,7 +13,7 @@ if(${BIGENDIAN})
     add_definitions(-DMULTIMC_BIG_ENDIAN)
 endif(${BIGENDIAN})
 
-find_package(Qt6 COMPONENTS Core REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
 
 # When built as part of the MeshMC tree the top-level build has already
 # resolved libarchive (from vcpkg, or from the system package), so only a
@@ -46,4 +46,4 @@ target_include_directories(classparser
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/classparser>)
-target_link_libraries(classparser PRIVATE LibArchive::LibArchive Qt6::Core)
+target_link_libraries(classparser PRIVATE LibArchive::LibArchive Qt${QT_VERSION_MAJOR}::Core)

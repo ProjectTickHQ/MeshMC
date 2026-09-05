@@ -144,7 +144,7 @@ namespace
 
 		QObject::connect(
 			proc,
-			QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+			QOverload<int, QProcess::ExitStatus>::of(qOverload<int, QProcess::ExitStatus>(&QProcess::finished)),
 			proc, [proc, haveCheckout](int code, QProcess::ExitStatus) {
 				g_wikiSyncRunning = false;
 				if (!g_ctx) { // plugin unloaded mid-flight

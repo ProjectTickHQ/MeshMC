@@ -19,6 +19,8 @@
 
 #include "CheckComboBox.h"
 
+#include "QtCompat.h"
+
 #include <QAbstractItemView>
 #include <QEvent>
 #include <QKeyEvent>
@@ -38,7 +40,7 @@ CheckComboBox::CheckComboBox(QWidget* parent)
 	installEventFilter(this);
 
 	/* Activation is a tick here, not a choice. */
-	connect(this, &QComboBox::activated, this, &CheckComboBox::toggleItem);
+	connect(this, qOverload<int>(&QComboBox::activated), this, &CheckComboBox::toggleItem);
 }
 
 void CheckComboBox::setDefaultText(const QString& text)
@@ -174,7 +176,7 @@ bool CheckComboBox::eventFilter(QObject* watched, QEvent* event)
 
 		case QEvent::MouseButtonPress: {
 			auto* mouseEvent = static_cast<QMouseEvent*>(event);
-			const QPoint position = mouseEvent->position().toPoint();
+			const QPoint position = QtCompat::mousePosition(mouseEvent).toPoint();
 			m_pressOnItem = view()->indexAt(position).isValid() &&
 							view()->rect().contains(position);
 			break;

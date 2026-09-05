@@ -56,9 +56,9 @@ struct Language {
 	{
 		QString result;
 		if (key == "ja_KANJI") {
-			result = locale.nativeLanguageName() + u8" (漢字)";
+			result = locale.nativeLanguageName() + " (漢字)";
 		} else if (key == "es_UY") {
-			result = u8"español de Latinoamérica";
+			result = "español de Latinoamérica";
 		} else {
 			result = locale.nativeLanguageName();
 		}

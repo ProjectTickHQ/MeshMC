@@ -255,8 +255,13 @@ class WorldMimeData : public QMimeData
 	}
 
   protected:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	QVariant retrieveData(const QString& mimetype,
 						  QMetaType type) const override
+#else
+	QVariant retrieveData(const QString& mimetype,
+						  QVariant::Type type) const override
+#endif
 	{
 		QList<QUrl> urls;
 		for (auto& world : m_worlds) {

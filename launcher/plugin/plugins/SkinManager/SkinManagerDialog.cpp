@@ -114,7 +114,7 @@ SkinManagerDialog::SkinManagerDialog(const QString& accountId, MMCOContext* ctx,
 	QObject::connect(ui->chkAutoRotate, &QCheckBox::toggled, this,
 					 &SkinManagerDialog::onAutoRotateToggled);
 	QObject::connect(ui->capeCombo,
-					 QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+					 QOverload<int>::of(qOverload<int>(&QComboBox::currentIndexChanged)), this,
 					 &SkinManagerDialog::onCapeChanged);
 	QObject::connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
 					 &SkinManagerDialog::onAccept);

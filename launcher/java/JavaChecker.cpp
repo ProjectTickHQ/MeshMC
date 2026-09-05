@@ -61,7 +61,7 @@ void JavaChecker::performCheck()
 	qDebug() << "Running java checker: " + m_path + args.join(" ");
 	;
 
-	connect(process.get(), &QProcess::finished, this, &JavaChecker::finished);
+	connect(process.get(), qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this, &JavaChecker::finished);
 	connect(process.get(), &QProcess::errorOccurred, this, &JavaChecker::error);
 	connect(process.get(), &QProcess::readyReadStandardOutput, this,
 			&JavaChecker::stdoutReady);

@@ -38,8 +38,11 @@ MSAStep::MSAStep(AccountData* data, Action action)
 	m_oauth2->setClientIdentifier(APPLICATION->msaClientId());
 	m_oauth2->setAuthorizationUrl(QUrl(
 		"https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize"));
-	m_oauth2->setTokenUrl(
-		QUrl("https://login.microsoftonline.com/consumers/oauth2/v2.0/token"));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+	m_oauth2->setTokenUrl(QUrl("https://login.microsoftonline.com/consumers/oauth2/v2.0/token"));
+#else
+	m_oauth2->setAccessTokenUrl(QUrl("https://login.microsoftonline.com/consumers/oauth2/v2.0/token"));
+#endif
 	m_oauth2->setScope("XboxLive.signin offline_access");
 	m_oauth2->setReplyHandler(m_replyHandler);
 	m_oauth2->setNetworkAccessManager(APPLICATION->network().get());
@@ -79,7 +82,11 @@ void MSAStep::perform()
 		case Refresh: {
 			// Load the refresh token from stored account data
 			m_oauth2->setRefreshToken(m_data->msaToken.refresh_token);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
 			m_oauth2->refreshTokens();
+#else
+			m_oauth2->refreshAccessToken();
+#endif
 			return;
 		}
 		case Login: {
@@ -92,9 +99,14 @@ void MSAStep::perform()
 					return;
 				}
 			}
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			using OAuthParameters = QMultiMap<QString, QVariant>;
+#else
+			using OAuthParameters = QMap<QString, QVariant>;
+#endif
 			m_oauth2->setModifyParametersFunction(
 				[](QAbstractOAuth::Stage stage,
-				   QMultiMap<QString, QVariant>* parameters) {
+				   OAuthParameters* parameters) {
 					if (stage ==
 						QAbstractOAuth::Stage::RequestingAuthorization) {
 						parameters->insert("prompt", "select_account");
@@ -146,10 +158,12 @@ void MSAStep::onRequestFailed(QAbstractOAuth::Error error)
 			emit finished(AccountTaskState::STATE_FAILED_HARD,
 						  tr("Microsoft authentication failed."));
 			return;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
 		case QAbstractOAuth::Error::ExpiredError:
 			emit finished(AccountTaskState::STATE_FAILED_GONE,
 						  tr("Microsoft authentication token expired."));
 			return;
+#endif
 		default:
 			emit finished(AccountTaskState::STATE_FAILED_HARD,
 						  tr("Microsoft authentication failed with an "

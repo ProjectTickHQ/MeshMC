@@ -5,7 +5,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 
-find_package(Qt6 COMPONENTS Core Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Widgets REQUIRED)
 
 set(ICONFIX_SOURCES
 xdgicon.h
@@ -18,7 +18,7 @@ internal/qiconloader_p.h
 add_library(iconfix SHARED ${ICONFIX_SOURCES})
 target_include_directories(iconfix PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_BINARY_DIR}" )
 
-target_link_libraries(iconfix PUBLIC Qt6::Core Qt6::Widgets)
+target_link_libraries(iconfix PUBLIC Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets)
 
 set_target_properties(iconfix PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN 1)
 generate_export_header(iconfix)

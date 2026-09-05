@@ -50,7 +50,7 @@ ModrinthPage::ModrinthPage(NewInstanceDialog* dialog, QWidget* parent)
 		ui->sortByBox->addItem(sorting.readableName);
 	}
 
-	connect(ui->sortByBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+	connect(ui->sortByBox, QOverload<int>::of(qOverload<int>(&QComboBox::currentIndexChanged)),
 			this, &ModrinthPage::triggerSearch);
 	connect(ui->packView->selectionModel(),
 			&QItemSelectionModel::currentChanged, this,

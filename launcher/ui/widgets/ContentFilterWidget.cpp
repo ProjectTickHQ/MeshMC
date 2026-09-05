@@ -115,7 +115,7 @@ void ContentFilterWidget::buildVersionGroup(bool extended)
 			   "is how a project that has not been updated yet is found."));
 		groupLayout->addWidget(m_mcVersionBox);
 
-		connect(m_mcVersionBox, &QComboBox::currentIndexChanged, this, [this] {
+		connect(m_mcVersionBox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
 			const QStringList before = m_filter.mcVersions;
 			rebuildFilter();
 			if (m_active && m_filter.mcVersions != before) {

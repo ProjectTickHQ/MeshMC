@@ -20,6 +20,8 @@
 #include "ContentProviderPage.h"
 #include "ui_ContentProviderPage.h"
 
+#include "QtCompat.h"
+
 #include <QDebug>
 #include <QDialogButtonBox>
 #include <QKeyEvent>
@@ -119,9 +121,9 @@ ContentProviderPage::ContentProviderPage(DownloadContentDialog* dialog,
 			&ContentProviderPage::onSearchTextEdited);
 	connect(m_ui->searchEdit, &QLineEdit::returnPressed, this,
 			&ContentProviderPage::triggerSearch);
-	connect(m_ui->sortByBox, &QComboBox::currentIndexChanged, this,
+	connect(m_ui->sortByBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
 			&ContentProviderPage::onSortChanged);
-	connect(m_ui->versionSelectionBox, &QComboBox::currentIndexChanged, this,
+	connect(m_ui->versionSelectionBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
 			&ContentProviderPage::onVersionChanged);
 	connect(m_ui->contentSelectionButton, &QPushButton::clicked, this,
 			&ContentProviderPage::onSelectionButtonClicked);
@@ -227,7 +229,7 @@ bool ContentProviderPage::eventFilter(QObject* watched, QEvent* event)
 		auto* mouseEvent = static_cast<QMouseEvent*>(event);
 		if (mouseEvent->button() == Qt::MiddleButton) {
 			onToggleRequested(
-				m_ui->packView->indexAt(mouseEvent->position().toPoint()));
+				m_ui->packView->indexAt(QtCompat::mousePosition(mouseEvent).toPoint()));
 			return true;
 		}
 	}
@@ -355,7 +357,7 @@ void ContentProviderPage::openProject(const QString& projectId)
 
 	m_ui->bottomLayout->addWidget(buttonBox, 1, 2);
 
-	connect(m_ui->versionSelectionBox, &QComboBox::currentIndexChanged, this,
+	connect(m_ui->versionSelectionBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
 			[this, okButton](int index) {
 				/* The "No valid version found." placeholder carries -1,
 				 * a real version its position in the list. */

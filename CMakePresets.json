@@ -14,6 +14,7 @@
       "generator": "Ninja Multi-Config",
       "toolchainFile": "cmake/vcpkg/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
+        "MeshMC_QT_VERSION_MAJOR": "6",
         "MeshMC_BUILD_ARTIFACT": "$penv{ARTIFACT_NAME}",
         "MeshMC_BUILD_PLATFORM": "$penv{BUILD_PLATFORM}",
         "MeshMC_UPDATE_CHANNEL": "$penv{UPDATE_CHANNEL}",
@@ -36,6 +37,16 @@
       }
     },
     {
+      "name": "linux_qt5",
+      "displayName": "Linux (Qt 5)",
+      "inherits": [
+        "linux"
+      ],
+      "cacheVariables": {
+        "MeshMC_QT_VERSION_MAJOR": "5"
+      }
+    },
+    {
       "name": "macos",
       "displayName": "macOS",
       "inherits": [
@@ -45,6 +56,16 @@
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos_qt5",
+      "displayName": "macOS (Qt 5)",
+      "inherits": [
+        "macos"
+      ],
+      "cacheVariables": {
+        "MeshMC_QT_VERSION_MAJOR": "5"
       }
     },
     {
@@ -71,6 +92,16 @@
       }
     },
     {
+      "name": "windows_mingw_qt5",
+      "displayName": "Windows (MinGW) (Qt 5)",
+      "inherits": [
+        "windows_mingw"
+      ],
+      "cacheVariables": {
+        "MeshMC_QT_VERSION_MAJOR": "5"
+      }
+    },
+    {
       "name": "windows_msvc",
       "displayName": "Windows (MSVC)",
       "inherits": [
@@ -83,6 +114,16 @@
       },
       "cacheVariables": {
         "CMAKE_MSVC_DEBUG_INFORMATION_FORMAT": "Embedded"
+      }
+    },
+    {
+      "name": "windows_msvc_qt5",
+      "displayName": "Windows (MSVC) (Qt 5)",
+      "inherits": [
+        "windows_msvc"
+      ],
+      "cacheVariables": {
+        "MeshMC_QT_VERSION_MAJOR": "5"
       }
     },
     {
@@ -110,6 +151,16 @@
       "configurePreset": "linux"
     },
     {
+      "name": "linux_qt5",
+      "displayName": "Linux (Qt 5)",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "configurePreset": "linux_qt5"
+    },
+    {
       "name": "macos",
       "displayName": "macOS",
       "condition": {
@@ -118,6 +169,17 @@
         "rhs": "Darwin"
       },
       "configurePreset": "macos"
+    },
+
+    {
+      "name": "macos_qt5",
+      "displayName": "macOS (Qt 5)",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "configurePreset": "macos_qt5"
     },
     {
       "name": "macos_universal",
@@ -128,6 +190,16 @@
       "configurePreset": "macos_universal"
     },
     {
+      "name": "windows_mingw_qt5",
+      "displayName": "Windows (MinGW) (Qt 5)",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "configurePreset": "windows_mingw_qt5"
+    },
+    {
       "name": "windows_mingw",
       "displayName": "Windows (MinGW)",
       "condition": {
@@ -136,6 +208,16 @@
         "rhs": "Windows"
       },
       "configurePreset": "windows_mingw"
+    },
+    {
+      "name": "windows_msvc_qt5",
+      "displayName": "Windows (MSVC) (Qt 5)",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "configurePreset": "windows_msvc_qt5"
     },
     {
       "name": "windows_msvc",
@@ -179,6 +261,19 @@
       "configurePreset": "linux"
     },
     {
+      "name": "linux_qt5",
+      "displayName": "Linux (Qt 5)",
+      "inherits": [
+        "base"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "configurePreset": "linux_qt5"
+    },
+    {
       "name": "macos",
       "displayName": "macOS",
       "inherits": [
@@ -190,6 +285,19 @@
         "rhs": "Darwin"
       },
       "configurePreset": "macos"
+    },
+    {
+      "name": "macos_qt5",
+      "displayName": "macOS (Qt 5)",
+      "inherits": [
+        "base"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "configurePreset": "macos_qt5"
     },
     {
       "name": "macos_universal",
@@ -218,6 +326,19 @@
       "configurePreset": "windows_mingw"
     },
     {
+      "name": "windows_mingw_qt5",
+      "displayName": "Windows (MinGW) (Qt 5)",
+      "inherits": [
+        "base"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "configurePreset": "windows_mingw_qt5"
+    },
+    {
       "name": "windows_msvc",
       "displayName": "Windows (MSVC)",
       "inherits": [
@@ -229,6 +350,19 @@
         "rhs": "Windows"
       },
       "configurePreset": "windows_msvc"
+    },
+    {
+      "name": "windows_msvc_qt5",
+      "displayName": "Windows (MSVC) (Qt 5)",
+      "inherits": [
+        "base"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "configurePreset": "windows_msvc_qt5"
     }
   ],
   "vendor": {

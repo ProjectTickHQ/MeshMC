@@ -124,7 +124,9 @@ QStringList InstanceList::decodeInstanceDirList(const QVariant& value)
 	 * config edited by hand can be either. Dropping the user's folders
 	 * over that distinction would be a poor trade for strictness.
 	 */
-	if (value.metaType().id() == QMetaType::QStringList) {
+	/* userType() rather than Qt 6's metaType()/typeId(): it exists in both
+	 * Qt 5 and Qt 6 (where it simply forwards to typeId()). */
+	if (value.userType() == QMetaType::QStringList) {
 		return value.toStringList();
 	}
 

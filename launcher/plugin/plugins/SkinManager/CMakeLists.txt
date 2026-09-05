@@ -11,7 +11,15 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-    find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Network OpenGL OpenGLWidgets)
+    set(MeshMC_QT_VERSION_MAJOR "6" CACHE STRING "Major Qt version to build against (5 or 6)")
+    set(QT_VERSION_MAJOR "${MeshMC_QT_VERSION_MAJOR}")
+
+    set(_skinmanager_qt_components Core Widgets Gui Network OpenGL)
+    if(QT_VERSION_MAJOR EQUAL 6)
+        list(APPEND _skinmanager_qt_components OpenGLWidgets)
+    endif()
+
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS ${_skinmanager_qt_components})
     find_package(MeshMC_SDK REQUIRED)
 
     set(MESHMC_PLUGIN_STAGING_DIR "${CMAKE_BINARY_DIR}/mmcmodules" CACHE PATH
@@ -51,8 +59,13 @@ set(SKINMANAGER_RESOURCES
     skinmanager.qrc
 )
 
-qt_wrap_ui(SKINMANAGER_UI_HEADERS ${SKINMANAGER_UIS})
-qt_add_resources(SKINMANAGER_RES_SOURCES ${SKINMANAGER_RESOURCES})
+if(QT_VERSION_MAJOR EQUAL 6)
+    qt6_wrap_ui(SKINMANAGER_UI_HEADERS ${SKINMANAGER_UIS})
+    qt6_add_resources(SKINMANAGER_RES_SOURCES ${SKINMANAGER_RESOURCES})
+else()
+    qt5_wrap_ui(SKINMANAGER_UI_HEADERS ${SKINMANAGER_UIS})
+    qt5_add_resources(SKINMANAGER_RES_SOURCES ${SKINMANAGER_RESOURCES})
+endif()
 
 add_library(SkinManager MODULE
     ${SKINMANAGER_SOURCES}
@@ -62,9 +75,14 @@ add_library(SkinManager MODULE
 
 target_link_libraries(SkinManager PRIVATE
     MeshMC::SDK                 # public SDK includes + Qt deps
-    Qt6::OpenGL                 # QOpenGLShaderProgram / QOpenGLBuffer
-    Qt6::OpenGLWidgets          # QOpenGLWidget
 )
+
+if(QT_VERSION_MAJOR EQUAL 6)
+    target_link_libraries(SkinManager PRIVATE
+        Qt6::OpenGL             # QOpenGLShaderProgram / QOpenGLBuffer
+        Qt6::OpenGLWidgets      # QOpenGLWidget
+    )
+endif()
 
 target_include_directories(SkinManager PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}   # generated ui_*.h

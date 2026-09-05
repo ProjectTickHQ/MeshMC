@@ -39,12 +39,19 @@ class InstanceView : public QAbstractItemView
 	InstanceView(QWidget* parent = 0);
 	~InstanceView();
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	QStyleOptionViewItem viewOptions() const
 	{
 		QStyleOptionViewItem option;
 		initViewItemOption(&option);
 		return option;
 	}
+#else
+	QStyleOptionViewItem viewOptions() const override
+	{
+		return QAbstractItemView::viewOptions();
+	}
+#endif
 
 	void setModel(QAbstractItemModel* model) override;
 

@@ -8,6 +8,7 @@ This document explains how to build MeshMC from source on all supported platform
 - [Dependencies](#dependencies)
 - [Cloning the Repository](#cloning-the-repository)
 - [CMake Presets](#cmake-presets)
+- [Choosing the Qt version](#choosing-the-qt-version)
 - [Building on Linux](#building-on-linux)
 - [Building on macOS](#building-on-macos)
 - [Building on Windows](#building-on-windows)
@@ -22,7 +23,9 @@ This document explains how to build MeshMC from source on all supported platform
 - **CMake** >= 3.20
 - **Ninja** (recommended generator)
 - **C++ compiler** with C++23 support (GCC >= 13, Clang >= 17, MSVC >= 19.36)
-- **Qt 6** (Core, Widgets, Concurrent, Network, NetworkAuth, Test, Xml)
+- **Qt 6** (>= 6.4) *or* **Qt 5** (>= 5.15) — Core, Widgets, Concurrent,
+  Network, NetworkAuth, Test, Xml, OpenGL. Qt 6 is the default; see
+  [Choosing the Qt version](#choosing-the-qt-version).
 - **Java Development Kit** (JDK 17) — for building Java launcher components
 - **Git** — required at configure time: vcpkg is a submodule, and it fetches
   the port versions it resolves through git
@@ -37,8 +40,8 @@ by vcpkg when you configure with a preset — see
 
 | Dependency             | Purpose                         | pkg-config name    |
 |------------------------|---------------------------------|--------------------|
-| Qt 6 (Base)            | GUI framework                   | `Qt6Core`          |
-| Qt 6 NetworkAuth       | OAuth2 authentication           | —                  |
+| Qt Base (6 or 5)       | GUI framework                   | `Qt6Core` / `Qt5Core` |
+| Qt NetworkAuth         | OAuth2 authentication           | —                  |
 | Extra CMake Modules    | KDE CMake utilities             | `ECM`              |
 | libqrencode            | QR code generation              | —                  |
 | scdoc                  | Man page generation (optional)  | —                  |
@@ -289,6 +292,49 @@ Some presets reference environment variables:
 | `ARTIFACT_NAME`   | All (via `base`)               | Updater artifact identifier       |
 | `BUILD_PLATFORM`  | All (via `base`)               | Platform identifier string        |
 
+## Choosing the Qt version
+
+MeshMC builds against either Qt 6 (>= 6.4) or Qt 5 (>= 5.15). One cache
+variable selects it, and it defaults to Qt 6:
+
+```bash
+# Qt 6 (default)
+cmake --preset linux
+
+# Qt 5
+cmake --preset linux -DMeshMC_QT_VERSION_MAJOR=5
+```
+
+Configure prints which one it resolved, so it is worth a glance:
+
+```
+-- Building against Qt 5.15.18 (major version 5)
+```
+
+Notes:
+
+- **Use a separate build directory per Qt version.** The major version is
+  baked into cached CMake state and into every generated `ui_*.h`; switching
+  it inside one build tree means reconfiguring from scratch anyway.
+- **Qt 5 needs the same modules as Qt 6**, plus `NetworkAuth` (a separate
+  package on most distros — e.g. `qt5-qtnetworkauth-devel`,
+  `libqt5networkauth5-dev`).
+- **No `OpenGLWidgets` package on Qt 5.** Qt 6 split `QOpenGLWidget` into
+  its own module; on Qt 5 it lives in QtWidgets, and the build accounts for
+  this. Nothing extra to install.
+- **macOS bundles are Qt 6 only.** Bundle deployment uses
+  `qt_generate_deploy_script`, which has no Qt 5 counterpart. Configuring a
+  macOS bundle with Qt 5 fails at configure time with an explicit message
+  rather than silently producing an incomplete `.app`.
+- **Out-of-tree plugins must match the launcher.** The exported
+  `MeshMC::SDK` target names `Qt5::*`/`Qt6::*` targets concretely. The
+  installed SDK config reports what it was built against in
+  `MeshMC_SDK_QT_VERSION_MAJOR`.
+
+Qt APIs that genuinely differ between the two majors are shimmed in one
+place, `launcher/QtCompat.h`, rather than with `#if`s spread across call
+sites. Anything that compiles unchanged against both does not belong there.
+
 ## Building on Linux
 
 ### Configure
@@ -522,6 +568,7 @@ These options can be set during configuration with `-D<OPTION>=<VALUE>`:
 | Option                         | Default  | Description                                |
 |--------------------------------|----------|--------------------------------------------|
 | `ENABLE_LTO`                   | `OFF`\*  | Enable Link Time Optimization              |
+| `MeshMC_QT_VERSION_MAJOR`     | `6`      | Major Qt version to build against: `6` (>= 6.4) or `5` (>= 5.15). Use a separate build directory per value — see [Choosing the Qt version](#choosing-the-qt-version) |
 | `MeshMC_BUILD_PLATFORM`       | `""`     | Platform identifier string (display only)  |
 | `MeshMC_BUILD_ARTIFACT`       | `""`     | Legacy substring used to match a feed asset when structured attributes are unavailable |
 | `MeshMC_BUILD_PLATFORM_ID`    | `""`     | Updater asset platform id: `linux` / `windows` / `macos` |
@@ -573,12 +620,25 @@ cmake --preset linux -DENABLE_LTO=OFF
 
 ### Missing Qt
 
-If CMake cannot find Qt, make sure the Qt 6 development packages are installed
-and that Qt's bin directory is in your `PATH` (or set `CMAKE_PREFIX_PATH`):
+If CMake cannot find Qt, make sure the development packages for the Qt major
+version you asked for are installed, and that Qt's bin directory is in your
+`PATH` (or set `CMAKE_PREFIX_PATH`):
 
 ```bash
 cmake --preset linux -DCMAKE_PREFIX_PATH=/path/to/qt6
+
+# Qt 5
+cmake --preset linux -DMeshMC_QT_VERSION_MAJOR=5 \
+    -DCMAKE_PREFIX_PATH=/path/to/qt5
 ```
+
+Configure prints the version it resolved (`Building against Qt ... (major
+version ...)`). If that line names a different major version than you
+expected, `CMAKE_PREFIX_PATH` is pointing at the other Qt.
+
+A missing `NetworkAuth` is the most common failure on Qt 5, since most
+distros ship it as its own package (`qt5-qtnetworkauth-devel`,
+`libqt5networkauth5-dev`) rather than as part of qtbase.
 
 ### Missing ECM (Extra CMake Modules)
 

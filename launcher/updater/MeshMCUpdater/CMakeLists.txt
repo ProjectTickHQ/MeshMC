@@ -17,7 +17,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # stage that does the overwriting runs from the staging directory, so the extra
 # Qt libraries are never mapped out of the installation being replaced and cost
 # nothing in lock contention.
-find_package(Qt6 REQUIRED COMPONENTS Core Network Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Network Widgets)
 
 # Normally already resolved by the top-level build (from vcpkg, or from the
 # system package); looked up here too so this directory still configures alone.
@@ -54,9 +54,9 @@ add_executable(meshmc-updater ${UPDATER_WIN32_FLAG}
 
 target_link_libraries(meshmc-updater
     PRIVATE
-        Qt6::Core
-        Qt6::Network
-        Qt6::Widgets
+        Qt${QT_VERSION_MAJOR}::Core
+        Qt${QT_VERSION_MAJOR}::Network
+        Qt${QT_VERSION_MAJOR}::Widgets
         LibArchive::LibArchive
         BuildConfig
 )
@@ -74,11 +74,11 @@ include(UnitTest)
 
 # UpdaterOptions is the only piece of the updater that is pure logic, and it is
 # also where the "updater does nothing at all" bug lived: a shell that does not
-# strip quotes. It compiles against Qt6::Core alone, so the test just builds
+# strip quotes. It compiles against Qt Core alone, so the test just builds
 # the source again rather than forcing the updater into a static library.
 add_unit_test(UpdaterOptions
     SOURCES UpdaterOptions_test.cpp UpdaterOptions_test.h UpdaterOptions.cpp UpdaterOptions.h
-    LIBS Qt6::Core
+    LIBS Qt${QT_VERSION_MAJOR}::Core
     )
 
 # The lock file doubles as the hand-off signal between the two stages: the
@@ -88,7 +88,7 @@ add_unit_test(UpdaterOptions
 # covered here instead of being left to a manual run.
 add_unit_test(UpdateLock
     SOURCES UpdateLock_test.cpp UpdateLock_test.h UpdateLock.cpp UpdateLock.h UpdaterUtil.cpp UpdaterUtil.h
-    LIBS Qt6::Core
+    LIBS Qt${QT_VERSION_MAJOR}::Core
     )
 
 # Install alongside the main binary so UpdateController can find it.

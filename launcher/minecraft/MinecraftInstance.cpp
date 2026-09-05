@@ -785,15 +785,15 @@ MinecraftInstance::verboseDescription(AuthSessionPtr session,
 			});
 			for (auto& mod : modList) {
 				if (mod.type() == Mod::MOD_FOLDER) {
-					out << u8"  [📁] " + mod.filename().completeBaseName() +
+					out << "  [📁] " + mod.filename().completeBaseName() +
 							   " (folder)";
 					continue;
 				}
 
 				if (mod.enabled()) {
-					out << u8"  [✔️] " + mod.filename().completeBaseName();
+					out << "  [✔️] " + mod.filename().completeBaseName();
 				} else {
-					out << u8"  [❌] " + mod.filename().completeBaseName() +
+					out << "  [❌] " + mod.filename().completeBaseName() +
 							   " (disabled)";
 				}
 			}

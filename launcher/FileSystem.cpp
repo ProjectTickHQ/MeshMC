@@ -195,8 +195,11 @@ namespace FS
 			return false;
 		}
 #endif
-
-		return QFile::supportsMoveToTrash();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+    return QFile::supportsMoveToTrash();
+#else
+    return true;
+#endif
 	}
 
 	bool trash(const QString& path, QString* pathInTrash)
