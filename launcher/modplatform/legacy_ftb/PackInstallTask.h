@@ -18,6 +18,8 @@
  */
 
 #pragma once
+#include <optional>
+
 #include "InstanceTask.h"
 #include "net/NetJob.h"
 #include "meta/Index.h"

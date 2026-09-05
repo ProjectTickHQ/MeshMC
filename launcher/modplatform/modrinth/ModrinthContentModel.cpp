@@ -202,7 +202,7 @@ QList<ModPlatform::ContentVersion> ModrinthContentModel::parseVersionsResponse(
 		const auto files = Json::ensureArray(versionObj, "files");
 		for (const auto& fileRaw : files) {
 			const auto fileObj = fileRaw.toObject();
-			const bool primary = Json::ensureBoolean(fileObj, "primary", false);
+			const bool primary = Json::ensureBoolean(fileObj, QStringLiteral("primary"), false);
 			if (!primary && files.size() != 1) {
 				continue;
 			}

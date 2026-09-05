@@ -21,6 +21,9 @@ inputs:
   qt-version:
     description: Version of Qt to use
     required: true
+  qt-major:
+    description: Major version of Qt to use
+    required: true
 
 outputs:
   build-type:
@@ -51,6 +54,7 @@ runs:
         build-type: ${{ inputs.build-type }}
         msystem: ${{ inputs.msystem }}
         vcvars-arch: ${{ inputs.vcvars-arch }}
+        qt-major: ${{ inputs.qt-major }}
 
     # TODO(@YongDo-Hyun): Get this working on MSYS2!
     - name: Setup ccache
@@ -112,8 +116,17 @@ runs:
 
         echo "VCPKG_TRIPLET=$vcpkg_arch-$vcpkg_platform" >> "$GITHUB_ENV"
 
-    - name: Install Qt
-      if: ${{ inputs.msystem == '' }}
+    - name: Install Qt 5
+      if: ${{ inputs.msystem == '' && inputs.qt-major == '5' }}
+      uses: jurplel/install-qt-action@v4
+      with:
+        aqtversion: "==3.1.*"
+        version: ${{ inputs.qt-version }}
+        modules: qtnetworkauth
+        cache: ${{ inputs.build-type == 'Debug' }}
+
+    - name: Install Qt 6
+      if: ${{ inputs.msystem == '' && inputs.qt-major == '6' }}
       uses: jurplel/install-qt-action@v4
       with:
         aqtversion: "==3.1.*"

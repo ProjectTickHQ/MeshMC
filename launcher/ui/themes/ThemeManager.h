@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include "CatPack.h"
+#include "ITheme.h"
+
 #include <QString>
 #include <QList>
 #include <QDir>
@@ -29,8 +32,6 @@
 #include <vector>
 
 class ITheme;
-
-#include "CatPack.h"
 
 struct IconThemeEntry {
 	QString id;
@@ -105,10 +106,12 @@ class ThemeManager
 	void initCustomIconThemes();
 	void initializeCatPacks();
 	void addCatPack(std::unique_ptr<CatPack> catPack);
+#ifdef Q_OS_MACOS
+	struct MacState;
+	std::unique_ptr<MacState> m_macState;
+#endif
+	void initialize();
 	void setTitlebarColorOfAllWindowsOnMac(QColor color);
 	void setTitlebarColorOnMac(WId windowId, QColor color);
 	void stopSettingNewWindowColorsOnMac();
-#ifdef Q_OS_MACOS
-    NSObject* m_windowTitlebarObserver = nullptr;
-#endif
 };

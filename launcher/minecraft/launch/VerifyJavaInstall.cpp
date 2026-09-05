@@ -40,6 +40,7 @@
 
 #ifndef MeshMC_DISABLE_JAVA_DOWNLOADER
 #include "BuildConfig.h"
+#include <optional>
 #include "net/Download.h"
 #endif
 

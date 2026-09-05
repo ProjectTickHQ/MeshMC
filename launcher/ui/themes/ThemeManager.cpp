@@ -18,14 +18,13 @@
  */
 
 #include "ThemeManager.h"
-#include "ITheme.h"
+
 #include "SystemTheme.h"
 #include "DarkTheme.h"
 #include "BrightTheme.h"
 #include "GreenDarkTheme.h"
 #include "GreenLightTheme.h"
 #include "CustomTheme.h"
-#include "CatPack.h"
 
 #include "Application.h"
 #include "Exception.h"
@@ -41,7 +40,21 @@
 #include <QSysInfo>
 #include <xdgicon.h>
 
+#ifndef Q_OS_MACOS
+
 ThemeManager::ThemeManager()
+{
+	initialize();
+}
+
+ThemeManager::~ThemeManager()
+{
+	stopSettingNewWindowColorsOnMac();
+}
+
+#endif
+
+void ThemeManager::initialize()
 {
 	// NOTE: captured once, before any theme is applied, so that the "System"
 	// theme keeps reporting the real system look even after a refresh().
@@ -52,11 +65,6 @@ ThemeManager::ThemeManager()
 	initializeThemes();
 	initIconThemes();
 	initializeCatPacks();
-}
-
-ThemeManager::~ThemeManager()
-{
-    stopSettingNewWindowColorsOnMac();
 }
 
 void ThemeManager::initializeThemes()

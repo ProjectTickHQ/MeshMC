@@ -111,7 +111,7 @@ namespace
 		const auto files = Json::ensureArray(vObj, "files");
 		for (auto fileRaw : files) {
 			const auto fObj = fileRaw.toObject();
-			const bool primary = Json::ensureBoolean(fObj, "primary", false);
+			const bool primary = Json::ensureBoolean(fObj, QStringLiteral("primary"), false);
 			if (primary || files.size() == 1) {
 				item.downloadUrl = Json::ensureString(fObj, "url", "");
 				item.fileName = Json::ensureString(fObj, "filename", "");

@@ -29,7 +29,7 @@ permissions: {}
 
 jobs:
   build:
-    name: Build (${{ matrix.artifact-name }})
+    name: Build (${{ matrix.build-name }})
 
     environment: ${{ inputs.environment || '' }}
 
@@ -46,17 +46,23 @@ jobs:
             artifact-name: Linux
             cmake-preset: linux
             qt-version: 6.10.2
+            qt-major: 6
+            build-name: Linux x86_64 Qt6
 
           - os: ubuntu-24.04-arm
             artifact-name: Linux-aarch64
             cmake-preset: linux
             qt-version: 6.10.2
+            qt-major: 6
+            build-name: Linux aarch64 Qt6
 
           - os: windows-2025
             artifact-name: Windows-MinGW-w64
             cmake-preset: windows_mingw
             msystem: CLANG64
             vcvars-arch: amd64_x86
+            qt-major: 6
+            build-name: Windows MinGW x86_64 Qt6
 
           - os: windows-2025-vs2026
             artifact-name: Windows-MSVC
@@ -64,18 +70,64 @@ jobs:
             # TODO(@YongDo-Hyun): This is the default in setup-dependencies/windows. Why isn't it working?!?!
             vcvars-arch: amd64
             qt-version: 6.10.2
+            qt-major: 6
+            build-name: Windows MSVC x86_64 Qt6
 
           - os: windows-11-vs2026-arm
             artifact-name: Windows-MSVC-arm64
             cmake-preset: windows_msvc
             vcvars-arch: arm64
             qt-version: 6.10.2
+            qt-major: 6
+            build-name: Windows MSVC aarch64 Qt6
 
-          - os: macos-26
-            artifact-name: macOS
-            cmake-preset: macos_universal
+          - os: macos-26-intel
+            artifact-name: macOS-Intel
+            cmake-preset: macos
             macosx-deployment-target: 12.0
             qt-version: 6.9.3
+            qt-major: 6
+            build-name: macOS x86_64 Qt6
+
+          - os: macos-26
+            artifact-name: macOS-ARM
+            cmake-preset: macos
+            macosx-deployment-target: 12.0
+            qt-version: 6.9.3
+            qt-major: 6
+            build-name: macOS aarch64 Qt6
+
+          - os: ubuntu-24.04
+            artifact-name: Linux
+            cmake-preset: linux
+            qt-version: 5.15.2
+            qt-major: 5
+            build-name: Linux x86_64 Qt5
+
+          - os: windows-2025
+            artifact-name: Windows-MinGW-w64
+            cmake-preset: windows_mingw
+            msystem: CLANG64
+            vcvars-arch: amd64_x86
+            qt-major: 5
+            build-name: Windows MinGW x86_64 Qt5
+
+          - os: windows-2022
+            artifact-name: Windows-MSVC
+            cmake-preset: windows_msvc
+            # TODO(@YongDo-Hyun): This is the default in setup-dependencies/windows. Why isn't it working?!?!
+            vcvars-arch: amd64
+            qt-version: 5.15.2
+            qt-major: 5
+            build-name: Windows MSVC x86_64 Qt5
+
+          - os: macos-26-intel
+            artifact-name: macOS-Intel
+            cmake-preset: macos
+            macosx-deployment-target: 12.0
+            qt-version: 5.15.2
+            qt-major: 5
+            build-name: macOS x86_64 Qt5
 
     runs-on: ${{ matrix.os }}
 
@@ -84,11 +136,12 @@ jobs:
         shell: ${{ matrix.msystem != '' && 'msys2 {0}' || 'bash' }}
 
     env:
-      ARTIFACT_NAME: ${{ matrix.artifact-name }}-Qt6
+      ARTIFACT_NAME: ${{ matrix.artifact-name }}-Qt${{ matrix.qt-major }}
       BUILD_PLATFORM: official
       BUILD_TYPE: ${{ inputs.build-type || 'Debug' }}
       CMAKE_PRESET: ${{ matrix.cmake-preset }}
       UPDATE_CHANNEL: stable
+      QT_MAJOR: ${{ matrix.qt-major }}
 
       MACOSX_DEPLOYMENT_TARGET: ${{ matrix.macosx-deployment-target }}
 
@@ -111,6 +164,7 @@ jobs:
           msystem: ${{ matrix.msystem }}
           vcvars-arch: ${{ matrix.vcvars-arch }}
           qt-version: ${{ matrix.qt-version }}
+          qt-major: ${{ matrix.qt-major }}
 
       ##
       # BUILD
@@ -118,7 +172,7 @@ jobs:
 
       - name: Configure project
         run: |
-          cmake --preset "$CMAKE_PRESET" -D VCPKG_HOST_TRIPLET="$VCPKG_TRIPLET" -D VCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET" -DMeshMC_QT_VERSION_MAJOR=6
+          cmake --preset "$CMAKE_PRESET" -D VCPKG_HOST_TRIPLET="$VCPKG_TRIPLET" -D VCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET" -DMeshMC_QT_VERSION_MAJOR="$QT_MAJOR"
 
       - name: Run build
         run: |
@@ -146,6 +200,7 @@ jobs:
           build-type: ${{ steps.setup-dependencies.outputs.build-type }}
           artifact-name: ${{ matrix.artifact-name }}
           qt-version: ${{ steps.setup-dependencies.outputs.qt-version }}
+          qt-major: ${{ matrix.qt-major }}
 
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-private-key-id: ${{ secrets.GPG_PRIVATE_KEY_ID }}
@@ -157,6 +212,7 @@ jobs:
           version: ${{ steps.short-version.outputs.version }}
           build-type: ${{ steps.setup-dependencies.outputs.build-type }}
           artifact-name: ${{ matrix.artifact-name }}
+          qt-major: ${{ matrix.qt-major }}
 
           apple-codesign-cert: ${{ secrets.APPLE_CODESIGN_CERT }}
           apple-codesign-password: ${{ secrets.APPLE_CODESIGN_PASSWORD }}
@@ -176,3 +232,4 @@ jobs:
           windows-codesign-cert: ${{ secrets.WINDOWS_CODESIGN_CERT }}
           windows-codesign-password: ${{ secrets.WINDOWS_CODESIGN_PASSWORD }}
           msystem: ${{ matrix.msystem }}
+          qt-major: ${{ matrix.qt-major }}

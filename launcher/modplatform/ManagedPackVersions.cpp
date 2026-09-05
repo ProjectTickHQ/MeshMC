@@ -199,7 +199,7 @@ namespace ManagedPack
 			for (const auto& fileRaw : files) {
 				const QJsonObject file = fileRaw.toObject();
 				const bool primary =
-					Json::ensureBoolean(file, "primary", false);
+					Json::ensureBoolean(file, QStringLiteral("primary"), false);
 				if (!primary && files.size() != 1) {
 					continue;
 				}

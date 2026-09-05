@@ -48,8 +48,10 @@ jobs:
           mv MeshMC-*.AppImage.zsync/MeshMC-*-x86_64.AppImage.zsync MeshMC-Linux-x86_64.AppImage.zsync
           mv MeshMC-*.AppImage/MeshMC-*-aarch64.AppImage MeshMC-Linux-aarch64.AppImage
           mv MeshMC-*.AppImage.zsync/MeshMC-*-aarch64.AppImage.zsync MeshMC-Linux-aarch64.AppImage.zsync
-          mv MeshMC-macOS*/MeshMC.zip MeshMC-macOS-${{ env.VERSION }}.zip
-          mv MeshMC-macOS*/MeshMC.dmg MeshMC-macOS-${{ env.VERSION }}.dmg
+          mv MeshMC-macOS-Intel*/MeshMC.zip MeshMC-macOS-Intel-${{ env.VERSION }}.zip
+          mv MeshMC-macOS-Intel*/MeshMC.dmg MeshMC-macOS-Intel-${{ env.VERSION }}.dmg
+          mv MeshMC-macOS-ARM*/MeshMC.zip MeshMC-macOS-ARM-${{ env.VERSION }}.zip
+          mv MeshMC-macOS-ARM*/MeshMC.dmg MeshMC-macOS-ARM-${{ env.VERSION }}.dmg
 
           tar --exclude='.git' -czf MeshMC-${{ env.VERSION }}.tar.gz MeshMC-${{ env.VERSION }}
 
@@ -105,6 +107,8 @@ jobs:
             MeshMC-Windows-MSVC-${{ env.VERSION }}.zip
             MeshMC-Windows-MSVC-Portable-${{ env.VERSION }}.zip
             MeshMC-Windows-MSVC-Setup-${{ env.VERSION }}.exe
-            MeshMC-macOS-${{ env.VERSION }}.zip
-            MeshMC-macOS-${{ env.VERSION }}.dmg
+            MeshMC-macOS-Intel-${{ env.VERSION }}.zip
+            MeshMC-macOS-Intel-${{ env.VERSION }}.dmg
+            MeshMC-macOS-ARM-${{ env.VERSION }}.zip
+            MeshMC-macOS-ARM-${{ env.VERSION }}.dmg
             MeshMC-${{ env.VERSION }}.tar.gz

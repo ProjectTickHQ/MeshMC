@@ -19,7 +19,24 @@
 
 #include "ThemeManager.h"
 
+#include <Foundation/Foundation.h>
 #include <AppKit/AppKit.h>
+
+struct ThemeManager::MacState
+{
+    NSObject* windowTitlebarObserver = nil;
+};
+
+ThemeManager::ThemeManager()
+	: m_macState(std::make_unique<MacState>())
+{
+	initialize();
+}
+
+ThemeManager::~ThemeManager()
+{
+	stopSettingNewWindowColorsOnMac();
+}
 
 namespace {
 
@@ -68,7 +85,7 @@ void ThemeManager::setTitlebarColorOfAllWindowsOnMac(QColor color)
     NSNotificationCenter* notificationCenter =
         NSNotificationCenter.defaultCenter;
 
-    m_windowTitlebarObserver =
+    m_macState->windowTitlebarObserver =
         [notificationCenter addObserverForName:NSWindowDidChangeOcclusionStateNotification
                                         object:nil
                                          queue:NSOperationQueue.mainQueue
@@ -89,10 +106,12 @@ void ThemeManager::setTitlebarColorOfAllWindowsOnMac(QColor color)
 
 void ThemeManager::stopSettingNewWindowColorsOnMac()
 {
-    if (!m_windowTitlebarObserver) {
+    if (!m_macState ||
+        !m_macState->windowTitlebarObserver) {
         return;
     }
 
-    [NSNotificationCenter.defaultCenter removeObserver:m_windowTitlebarObserver];
-    m_windowTitlebarObserver = nil;
+    [NSNotificationCenter.defaultCenter
+        removeObserver:m_macState->windowTitlebarObserver];
+    m_macState->windowTitlebarObserver = nil;
 }

@@ -64,7 +64,7 @@ void Modrinth::loadIndexedPackVersions(Modrinth::IndexedPack& pack,
 		auto files = Json::ensureArray(obj, "files");
 		for (auto fileRaw : files) {
 			auto fileObj = fileRaw.toObject();
-			bool primary = Json::ensureBoolean(fileObj, "primary", false);
+			bool primary = Json::ensureBoolean(fileObj, QStringLiteral("primary"), false);
 			if (primary || files.size() == 1) {
 				version.downloadUrl = Json::ensureString(fileObj, "url", "");
 				version.downloadSize = Json::ensureInteger(fileObj, "size", 0);

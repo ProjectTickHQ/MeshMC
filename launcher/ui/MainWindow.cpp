@@ -27,6 +27,9 @@
 #include "ui/MacMenuBar.h"
 #include "ui/themes/ThemeManager.h"
 
+#include <type_traits>
+#include <utility>
+
 #include <QtCore/QVariant>
 #include <QtCore/QUrl>
 #include <QtCore/QDir>
@@ -188,6 +191,14 @@ namespace
 	}
 } // namespace
 
+template <typename T, typename = void>
+struct has_setIconText : std::false_type {};
+
+template <typename T>
+struct has_setIconText<T, std::void_t<
+    decltype(std::declval<T*>()->setIconText(QString()))
+>> : std::true_type {};
+
 // WHY: to hold the pre-translation strings together with the T pointer, so it
 // can be retranslated without a lot of ugly code
 template <typename T> class Translated
@@ -243,7 +254,7 @@ template <typename T> class Translated
 		 * icon text of its own to set - and instantiating the call for
 		 * it would not compile. Nothing sets an id for one either, so
 		 * the branch simply does not exist there. */
-		if constexpr (requires(T* target) { target->setIconText(QString()); }) {
+		if constexpr (has_setIconText<T>::value) {
 			if (m_iconText) {
 				QString result;
 				result = QApplication::translate("MainWindow", m_iconText);

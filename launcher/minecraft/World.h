@@ -21,6 +21,7 @@
 #pragma once
 #include <QFileInfo>
 #include <QDateTime>
+#include <optional>
 
 struct GameType {
 	GameType() = default;

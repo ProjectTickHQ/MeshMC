@@ -27,6 +27,7 @@
 #include <QFutureWatcher>
 #include <QStringList>
 #include <QUrl>
+#include <optional>
 
 namespace Technic
 {
