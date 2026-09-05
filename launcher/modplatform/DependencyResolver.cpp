@@ -503,7 +503,7 @@ void DependencyResolver::onDependencyProjectResolved(
 		auto files = Json::ensureArray(vObj, "files");
 		for (auto fileRaw : files) {
 			auto fileObj = fileRaw.toObject();
-			bool primary = Json::ensureBoolean(fileObj, "primary", false);
+			bool primary = Json::ensureBoolean(fileObj, QStringLiteral("primary"), false);
 			if (primary || files.size() == 1) {
 				dep.downloadUrl = Json::ensureString(fileObj, "url", "");
 				dep.fileName = Json::ensureString(fileObj, "filename", "");
@@ -692,7 +692,7 @@ void DependencyResolver::processMRVersionDeps(const QJsonObject& versionObj,
 					for (auto fileRaw : files) {
 						auto fileObj = fileRaw.toObject();
 						bool primary =
-							Json::ensureBoolean(fileObj, "primary", false);
+							Json::ensureBoolean(fileObj, QStringLiteral("primary"), false);
 						if (primary || files.size() == 1) {
 							dep.downloadUrl =
 								Json::ensureString(fileObj, "url", "");

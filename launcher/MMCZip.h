@@ -28,6 +28,7 @@
 #include <QDateTime>
 #include "minecraft/mod/Mod.h"
 #include <functional>
+#include <optional>
 
 struct archive;
 

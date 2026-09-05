@@ -16,6 +16,10 @@ inputs:
   qt-version:
     description: Version of Qt to use
     required: true
+  qt-major:
+    description: Major version of Qt used, to keep artifact names distinct
+    required: false
+    default: "6"
   gpg-private-key:
     description: Private key for AppImage signing
     required: false
@@ -137,17 +141,17 @@ runs:
     - name: Upload binary tarball
       uses: actions/upload-artifact@v7
       with:
-        name: MeshMC-${{ inputs.artifact-name }}-Qt6-Portable-${{ inputs.version }}-${{ inputs.build-type }}
+        name: MeshMC-${{ inputs.artifact-name }}-Qt${{ inputs.qt-major }}-Portable-${{ inputs.version }}-${{ inputs.build-type }}
         path: MeshMC-portable.tar.gz
 
     - name: Upload AppImage
       uses: actions/upload-artifact@v7
       with:
-        name: MeshMC-${{ runner.os }}-${{ inputs.version }}-${{ inputs.build-type }}-${{ env.APPIMAGE_ARCH }}.AppImage
+        name: MeshMC-${{ runner.os }}-Qt${{ inputs.qt-major }}-${{ inputs.version }}-${{ inputs.build-type }}-${{ env.APPIMAGE_ARCH }}.AppImage
         path: MeshMC-${{ runner.os }}-*${{ env.APPIMAGE_ARCH }}.AppImage
 
     - name: Upload AppImage Zsync
       uses: actions/upload-artifact@v7
       with:
-        name: MeshMC-${{ runner.os }}-${{ inputs.version }}-${{ inputs.build-type }}-${{ env.APPIMAGE_ARCH }}.AppImage.zsync
+        name: MeshMC-${{ runner.os }}-Qt${{ inputs.qt-major }}-${{ inputs.version }}-${{ inputs.build-type }}-${{ env.APPIMAGE_ARCH }}.AppImage.zsync
         path: MeshMC-${{ runner.os }}-*${{ env.APPIMAGE_ARCH }}.AppImage.zsync

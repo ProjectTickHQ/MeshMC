@@ -1205,6 +1205,11 @@ else()
 endif()
 
 if(APPLE)
+    target_link_libraries(MeshMC_logic
+        "-framework AppKit"
+        "-framework Foundation"
+        objc
+    )
     set(CMAKE_MACOSX_RPATH 1)
     set(CMAKE_INSTALL_RPATH "@loader_path/../Frameworks/")
 endif()
@@ -1299,12 +1304,126 @@ if(WIN32 OR (UNIX AND APPLE))
     if(WIN32)
         # Find windeployqt directly — Qt's qt_generate_deploy_script tries to find
         # windeployqt.debug.bat for Debug builds, which may not be available.
+        #
+        # Deriving the directory from the qmake target alone is not enough:
+        # depending on how Qt was packaged the host tools can sit somewhere
+        # other than next to qmake, so qmake is asked directly as well. And
+        # packagings that carry Qt 5 and Qt 6 side by side suffix the tool
+        # name to keep the two apart, hence the name list.
         get_target_property(_qt_qmake_loc Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
         get_filename_component(_qt_bin_dir "${_qt_qmake_loc}" DIRECTORY)
-        find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
+
+        QUERY_QMAKE(QT_INSTALL_BINS _qt_install_bins)
+        QUERY_QMAKE(QT_HOST_BINS _qt_host_bins)
+
+        find_program(WINDEPLOYQT_EXECUTABLE
+            NAMES
+                windeployqt
+                windeployqt-qt${QT_VERSION_MAJOR}
+                windeployqt${QT_VERSION_MAJOR}
+            HINTS
+                "${_qt_bin_dir}"
+                "${_qt_install_bins}"
+                "${_qt_host_bins}"
+                "${Qt${QT_VERSION_MAJOR}_DIR}/../../../bin"
+        )
+
         if(NOT WINDEPLOYQT_EXECUTABLE)
-            message(FATAL_ERROR "windeployqt not found")
+            # Report what was actually searched. The bare "not found" this
+            # used to print gave nothing to act on, which is expensive when
+            # the only place it reproduces is a CI runner.
+            message(FATAL_ERROR
+                "windeployqt not found.\n"
+                "  Names searched      : windeployqt, "
+                "windeployqt-qt${QT_VERSION_MAJOR}, windeployqt${QT_VERSION_MAJOR}\n"
+                "  qmake executable    : ${_qt_qmake_loc}\n"
+                "  qmake directory     : ${_qt_bin_dir}\n"
+                "  QT_INSTALL_BINS     : ${_qt_install_bins}\n"
+                "  QT_HOST_BINS        : ${_qt_host_bins}\n"
+                "  Qt CMake dir + /bin : ${Qt${QT_VERSION_MAJOR}_DIR}/../../../bin\n"
+                "windeployqt ships with Qt's qtbase tools; make sure they are "
+                "installed for this Qt and that the directories above look right.")
         endif()
+
+        message(STATUS "windeployqt: ${WINDEPLOYQT_EXECUTABLE}")
+
+        # windeployqt's option set is not stable across Qt releases:
+        # --skip-plugin-types and --no-system-dxc-compiler are Qt 6 additions
+        # (and the latter only appeared partway through the Qt 6 series). Qt 5's
+        # windeployqt does not merely ignore them, it bails out with
+        # "Unknown options: ..." and a non-zero exit code, which fails install.
+        #
+        # Deriving the option list from the Qt version would mean encoding which
+        # release added what, so the tool is asked directly instead: anything it
+        # does not advertise in its help output is left off the command line.
+        execute_process(
+            COMMAND "${WINDEPLOYQT_EXECUTABLE}" --help
+            OUTPUT_VARIABLE _windeployqt_help_out
+            ERROR_VARIABLE _windeployqt_help_err
+            RESULT_VARIABLE _windeployqt_help_result
+        )
+        # Some builds print the usage text on stderr, so consider both streams.
+        set(_windeployqt_help "${_windeployqt_help_out}${_windeployqt_help_err}")
+        if(NOT _windeployqt_help_result EQUAL 0)
+            # Not fatal: the optional switches below are optimisations, and
+            # dropping them only means a slightly larger deployment.
+            message(WARNING
+                "Could not query '${WINDEPLOYQT_EXECUTABLE} --help' "
+                "(exit code: ${_windeployqt_help_result}). Deploying with the "
+                "baseline option set; the package may contain plugins that "
+                "would otherwise have been skipped.")
+            set(_windeployqt_help "")
+        endif()
+
+        # Understood by both Qt 5 and Qt 6 windeployqt.
+        # install-qt-action and MSYS2 only provide release Qt, so always use
+        # --release even when the app itself is built in Debug mode.
+        set(WINDEPLOYQT_OPTIONS
+            --release
+            --no-opengl-sw
+            --no-quick-import
+            --no-system-d3d-compiler
+            --no-translations
+            --no-compiler-runtime
+        )
+        if(_windeployqt_help MATCHES "no-system-dxc-compiler")
+            list(APPEND WINDEPLOYQT_OPTIONS --no-system-dxc-compiler)
+        else()
+            message(STATUS "windeployqt: --no-system-dxc-compiler unsupported, skipping it")
+        endif()
+        if(_windeployqt_help MATCHES "skip-plugin-types")
+            list(APPEND WINDEPLOYQT_OPTIONS --skip-plugin-types generic,networkinformation)
+        else()
+            message(STATUS "windeployqt: --skip-plugin-types unsupported, skipping it")
+        endif()
+
+        if(_windeployqt_help MATCHES "no-angle")
+            set(_qt_angle_dll "")
+            foreach(_qt_angle_dir IN ITEMS
+                "${_qt_bin_dir}" "${_qt_install_bins}" "${_qt_host_bins}")
+                if(_qt_angle_dir AND EXISTS "${_qt_angle_dir}/libGLESv2.dll")
+                    set(_qt_angle_dll "${_qt_angle_dir}/libGLESv2.dll")
+                    break()
+                endif()
+            endforeach()
+            if(_qt_angle_dll)
+                message(STATUS "windeployqt: ANGLE present (${_qt_angle_dll}), deploying it")
+            else()
+                message(STATUS
+                    "windeployqt: no libGLESv2.dll alongside Qt, passing --no-angle")
+                list(APPEND WINDEPLOYQT_OPTIONS --no-angle)
+            endif()
+        endif()
+
+        message(STATUS "windeployqt options: ${WINDEPLOYQT_OPTIONS}")
+
+        # Pre-render the options as one quoted argument per line. Expanding the
+        # list directly into the install(CODE) string would paste it in
+        # semicolon-separated, i.e. as a single bogus argument.
+        set(WINDEPLOYQT_OPTIONS_CODE "")
+        foreach(_windeployqt_opt IN LISTS WINDEPLOYQT_OPTIONS)
+            string(APPEND WINDEPLOYQT_OPTIONS_CODE "\n                    \"${_windeployqt_opt}\"")
+        endforeach()
     endif()
 
     if(UNIX AND APPLE)
@@ -1431,20 +1550,11 @@ if(WIN32 OR (UNIX AND APPLE))
     )
 
     if(WIN32)
-        # Deploy Qt plugins and DLLs using windeployqt.
-        # install-qt-action and MSYS2 only provide release Qt, so always use --release
-        # even when the app itself is built in Debug mode.
+        # Deploy Qt plugins and DLLs using windeployqt. WINDEPLOYQT_OPTIONS is
+        # assembled above from the switches this windeployqt actually supports.
         install(CODE "
             execute_process(
-                COMMAND \"${WINDEPLOYQT_EXECUTABLE}\"
-                    --release
-                    --no-opengl-sw
-                    --no-quick-import
-                    --no-system-d3d-compiler
-                    --no-system-dxc-compiler
-                    --skip-plugin-types generic,networkinformation
-                    --no-translations
-                    --no-compiler-runtime
+                COMMAND \"${WINDEPLOYQT_EXECUTABLE}\"${WINDEPLOYQT_OPTIONS_CODE}
                     --dir \"\${CMAKE_INSTALL_PREFIX}/${BINARY_DEST_DIR}\"
                     --libdir \"\${CMAKE_INSTALL_PREFIX}/${LIBRARY_DEST_DIR}\"
                     --plugindir \"\${CMAKE_INSTALL_PREFIX}/${PLUGIN_DEST_DIR}\"
@@ -1505,33 +1615,4 @@ if(WIN32 OR (UNIX AND APPLE))
         FILES "qtlogging.ini"
         DESTINATION ${CMAKE_INSTALL_PREFIX}/${RESOURCES_DEST_DIR}
     )
-endif()
-
-find_program(CLANG_FORMAT clang-format OPTIONAL)
-if(CLANG_FORMAT)
-    message(STATUS "Creating clang-format target")
-    add_custom_target(
-        clang-format
-        COMMAND ${CLANG_FORMAT} -i --style=file:${CMAKE_SOURCE_DIR}/.clang-format ${LOGIC_SOURCES} ${MESHMC_SOURCES}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    )
-else()
-    message(WARNING "Unable to find `clang-format`. Not creating custom target")
-endif()
-
-find_program(CLANG_TIDY clang-tidy OPTIONAL)
-find_program(RUN_CLANG_TIDY NAMES run-clang-tidy run-clang-tidy.py OPTIONAL)
-if(CLANG_TIDY AND RUN_CLANG_TIDY)
-    message(STATUS "Creating clang-tidy target")
-    add_custom_target(
-        clang-tidy
-        COMMAND ${RUN_CLANG_TIDY}
-            -p ${PROJECT_BINARY_DIR}
-            -clang-tidy-binary ${CLANG_TIDY}
-            -config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        USES_TERMINAL
-    )
-elseif(CLANG_TIDY)
-    message(WARNING "Unable to find `run-clang-tidy`. Not creating custom target")
 endif()

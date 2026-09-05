@@ -21,6 +21,10 @@ inputs:
   windows-codesign-password:
     description: Password for signing Windows builds
     required: false
+  qt-major:
+    description: Major version of Qt used, to keep artifact names distinct
+    required: false
+    default: "6"
 
 runs:
   using: composite
@@ -156,17 +160,17 @@ runs:
     - name: Upload binary zip
       uses: actions/upload-artifact@v7
       with:
-        name: MeshMC-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}
+        name: MeshMC-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}-Qt${{ inputs.qt-major }}
         path: ${{ github.workspace }}/install/**
 
     - name: Upload portable zip
       uses: actions/upload-artifact@v7
       with:
-        name: MeshMC-${{ inputs.artifact-name }}-Portable-${{ inputs.version }}-${{ inputs.build-type }}
+        name: MeshMC-${{ inputs.artifact-name }}-Portable-${{ inputs.version }}-${{ inputs.build-type }}-Qt${{ inputs.qt-major }}
         path: ${{ github.workspace }}/install-portable/**
 
     - name: Upload installer
       uses: actions/upload-artifact@v7
       with:
-        name: MeshMC-${{ inputs.artifact-name }}-Setup-${{ inputs.version }}-${{ inputs.build-type }}
+        name: MeshMC-${{ inputs.artifact-name }}-Setup-${{ inputs.version }}-${{ inputs.build-type }}-Qt${{ inputs.qt-major }}
         path: ${{ github.workspace }}/MeshMC-Setup.exe

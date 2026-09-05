@@ -31,6 +31,8 @@
 #include "minecraft/PackProfile.h"
 #include "meta/Version.h"
 
+#include <optional>
+
 namespace ATLauncher
 {
 

@@ -280,7 +280,7 @@ void Sys::lsb_postprocess(Sys::LsbInfo& lsb, Sys::DistributionInfo& out)
 		} else if (lsb.description.startsWith("suse linux enterprise")) {
 			dist = "sles";
 		}
-	} else if (dist == "debian" and vers == "testing") {
+	} else if (dist == "debian" && vers == "testing") {
 		vers = lsb.codename;
 	} else {
 		// ubuntu, debian, gentoo, scientific, slackware, ... ?
